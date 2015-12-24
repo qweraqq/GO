@@ -18,8 +18,9 @@ const (
 	Multiply = "Multiply"
 	Divide = "Divide"
 	MasterPort = "11234"
-	WorkerPort1 = "11235"
-	WorkerPort2 = "11236"
+	NumWorkers = 4
+	
+	
 )
 
 

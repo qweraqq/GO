@@ -1,6 +1,5 @@
 package hw8
 
-import "fmt"
 import "log"
 import "net/rpc"
 import "net"
@@ -13,7 +12,7 @@ type Worker struct {
 	name   string
 	nRPC   int
 	nJobs  int
-	l      net.Listener
+	l net.Listener
 }
 
 
@@ -23,36 +22,36 @@ func Register(master string, me string) {
 	args.Worker = me
 	var reply RegisterReply
 	for ok := call(master, "Master.Register", args, &reply);ok == false;{
-		fmt.Printf("Register: RPC %s register error,retrying...\n", master)
+		DPrintf("Register RPC %s register error,retrying...\n", master)
 		time.Sleep(time.Second)
 		ok = call(master, "Master.Register", args, &reply)
 	}
-	fmt.Printf("Register: RPC %s register succeed\n", master)
+	DPrintf("Worker %s has been registered \n", me)
 }
 
 
 // Set up a connection with the master, register with the master,
-// and wait for jobs from the master
-func (wk *Worker)RunWorker(MasterAddress string, port string,
+// and wait for jobs from the client
+func (wk *Worker)RunWorker(MasterAddress string, workerAddress string,
 	nRPC int) {
-	DPrintf("RunWorker %s\n", port)
+	DPrintf("Runing Worker %s\n", workerAddress)
 	//wk := new(Worker)
-	wk.name = port	
+	wk.name = workerAddress
 	wk.nRPC = nRPC
 	
 	arith := new(Arith)
 	rpc.Register(arith)
 	//rpc.HandleHTTP()
-	l, e := net.Listen("tcp", ":"+port)
+	l, e := net.Listen("tcp", workerAddress)
 	if e != nil {
-		DPrintf("RunWorker: worker %s error %s\n", port,e)
-		log.Fatal("RunWorker: worker ", port, " error: ", e)
+		DPrintf("RunWorker: worker %s error %s\n", workerAddress,e)
+		log.Fatal("RunWorker: worker ", workerAddress, " error: ", e)
 	}
-	//wk.l = l
-	Register(MasterAddress, ":"+port)
+	wk.l = l
+	Register(MasterAddress, workerAddress)
 	go http.Serve(l, nil)
 	
 	
 
-	DPrintf("Worker %s is running...\n", port)
+	DPrintf("Worker %s is running...\n", workerAddress)
 }
